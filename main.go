@@ -1,4 +1,4 @@
-package mongotodo
+package main
 
 import (
 	"context"
