@@ -68,6 +68,7 @@ func GetAllTodosEndPoint(res http.ResponseWriter, req *http.Request) {
 		res.Write([]byte(`{ "message": "` + err.Error() + `" }`))
 		return
 	}
+
 	json.NewEncoder(res).Encode(todos)
 }
 
