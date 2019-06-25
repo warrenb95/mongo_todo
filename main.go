@@ -29,7 +29,8 @@ var client *mongo.Client
 
 // Creates a new Todo object in the database
 func CreateTodoEndPoint(res http.ResponseWriter, req *http.Request) {
-	res.Header().Set("content-type", "application/json")
+	res.Header().Set("Content-Type", "application/json")
+	res.WriteHeader(http.StatusOK)
 
 	var todo Todo
 	json.NewDecoder(req.Body).Decode(&todo)
@@ -44,7 +45,8 @@ func CreateTodoEndPoint(res http.ResponseWriter, req *http.Request) {
 }
 
 func GetAllTodosEndPoint(res http.ResponseWriter, req *http.Request) {
-	res.Header().Set("content-type", "application/json")
+	res.Header().Set("Content-Type", "application/json")
+	res.WriteHeader(http.StatusOK)
 
 	var todos []Todo
 	collection := client.Database("gotodo").Collection("todos")
@@ -73,7 +75,8 @@ func GetAllTodosEndPoint(res http.ResponseWriter, req *http.Request) {
 }
 
 func GetTodoEndpoint(res http.ResponseWriter, req *http.Request) {
-	res.Header().Set("content-type", "application/json")
+	res.Header().Set("Content-Type", "application/json")
+	res.WriteHeader(http.StatusOK)
 
 	params := mux.Vars(req)
 
@@ -93,7 +96,8 @@ func GetTodoEndpoint(res http.ResponseWriter, req *http.Request) {
 }
 
 func DeleteTodoEndPoint(res http.ResponseWriter, req *http.Request) {
-	res.Header().Set("content-type", "application/json")
+	res.Header().Set("Content-Type", "application/json")
+	res.WriteHeader(http.StatusOK)
 
 	params := mux.Vars(req)
 	id, _ := primitive.ObjectIDFromHex(params["id"])
@@ -112,7 +116,8 @@ func DeleteTodoEndPoint(res http.ResponseWriter, req *http.Request) {
 }
 
 func UpdateTodoEndPoint(res http.ResponseWriter, req *http.Request) {
-	res.Header().Set("content-type", "application/json")
+	res.Header().Set("Content-Type", "application/json")
+	res.WriteHeader(http.StatusOK)
 
 	params := mux.Vars(req)
 	id, _ := primitive.ObjectIDFromHex(params["id"])
@@ -133,7 +138,8 @@ func UpdateTodoEndPoint(res http.ResponseWriter, req *http.Request) {
 }
 
 func TimeSpentEndPoint(res http.ResponseWriter, req *http.Request) {
-	res.Header().Set("content-type", "application/json")
+	res.Header().Set("Content-Type", "application/json")
+	res.WriteHeader(http.StatusOK)
 
 	params := mux.Vars(req)
 	id, _ := primitive.ObjectIDFromHex(params["id"])
