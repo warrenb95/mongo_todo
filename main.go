@@ -15,14 +15,20 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+type Timespent struct {
+	Duration int64     `json:"timespent,omitempty" bson:"timespent,omitempty"`
+	Date     time.Time `json:"timecreated,omitempty" bson:"timecreated,omitempty"`
+}
+
 type Todo struct {
-	ID          primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
-	Title       string             `json:"title,omitempty" bson:"title,omitempty"`
-	Desc        string             `json:"desc,omitempty" bson:"desc,omitempty"`
-	TimeCreated time.Time          `json:"timecreated,omitempty" bson:"timecreated,omitempty"`
-	Deadline    time.Time          `json:"deadline,omitempty" bson:"deadline,omitempty"`
-	Estimate    int64              `json:"estimate,omitempty" bson:"estimate,omitempty"`
-	TimeSpent   int64              `json:"timespent,omitempty" bson:"timespent,omitempty"`
+	ID             primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
+	Title          string             `json:"title,omitempty" bson:"title,omitempty"`
+	Desc           string             `json:"desc,omitempty" bson:"desc,omitempty"`
+	TimeCreated    time.Time          `json:"timecreated,omitempty" bson:"timecreated,omitempty"`
+	Deadline       time.Time          `json:"deadline,omitempty" bson:"deadline,omitempty"`
+	Estimate       int64              `json:"estimate,omitempty" bson:"estimate,omitempty"`
+	TotalTimeSpent int64              `json:"totaltimespent,omitempty" bson:"totaltimespent,omitempty"`
+	TimeSpent      []Timespent        `json:"timespent,omitempty" bson:"timespent,omitempty"`
 }
 
 var client *mongo.Client
@@ -35,7 +41,6 @@ func CreateTodoEndPoint(res http.ResponseWriter, req *http.Request) {
 	var todo Todo
 	json.NewDecoder(req.Body).Decode(&todo)
 	todo.TimeCreated = time.Now()
-	todo.TimeSpent = 0
 
 	collection := client.Database("gotodo").Collection("todos")
 
@@ -152,7 +157,8 @@ func TimeSpentEndPoint(res http.ResponseWriter, req *http.Request) {
 	var updatedTodo Todo
 	json.NewDecoder(req.Body).Decode(&updatedTodo)
 
-	todo.TimeSpent += updatedTodo.TimeSpent
+	todo.TimeSpent = append(todo.TimeSpent, updatedTodo.TimeSpent[0])
+	todo.TotalTimeSpent += updatedTodo.TimeSpent[0].Duration
 
 	result, err := collection.UpdateOne(context.TODO(), Todo{ID: id}, bson.M{"$set": todo})
 	if err != nil {
