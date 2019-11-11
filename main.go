@@ -2,174 +2,19 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
-	"time"
+	"os"
 
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"github.com/warrenb95/mongo_todo/routes"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type Timespent struct {
-	Duration int64     `json:"timespent,omitempty" bson:"timespent,omitempty"`
-	Date     time.Time `json:"timecreated,omitempty" bson:"timecreated,omitempty"`
-	Desc     string    `json:"desc,omitempty" bson:"desc,omitempty"`
-}
-
-type Todo struct {
-	ID             primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
-	Title          string             `json:"title,omitempty" bson:"title,omitempty"`
-	Desc           string             `json:"desc,omitempty" bson:"desc,omitempty"`
-	TimeCreated    time.Time          `json:"timecreated,omitempty" bson:"timecreated,omitempty"`
-	Deadline       time.Time          `json:"deadline,omitempty" bson:"deadline,omitempty"`
-	Estimate       int64              `json:"estimate,omitempty" bson:"estimate,omitempty"`
-	TotalTimeSpent int64              `json:"totaltimespent,omitempty" bson:"totaltimespent,omitempty"`
-	TimeSpent      []Timespent        `json:"timespent,omitempty" bson:"timespent,omitempty"`
-}
-
-var client *mongo.Client
-
-// Creates a new Todo object in the database
-func CreateTodoEndPoint(res http.ResponseWriter, req *http.Request) {
-	res.Header().Set("Content-Type", "application/json")
-	res.WriteHeader(http.StatusOK)
-
-	var todo Todo
-	json.NewDecoder(req.Body).Decode(&todo)
-	todo.TimeCreated = time.Now()
-
-	collection := client.Database("gotodo").Collection("todos")
-
-	result, _ := collection.InsertOne(context.TODO(), todo)
-
-	json.NewEncoder(res).Encode(result)
-}
-
-func GetAllTodosEndPoint(res http.ResponseWriter, req *http.Request) {
-	res.Header().Set("Content-Type", "application/json")
-	res.WriteHeader(http.StatusOK)
-
-	var todos []Todo
-	collection := client.Database("gotodo").Collection("todos")
-
-	cursor, err := collection.Find(context.TODO(), bson.M{})
-	if err != nil {
-		res.WriteHeader(http.StatusInternalServerError)
-		res.Write([]byte(`{ "message": "` + err.Error() + `" }`))
-		return
-	}
-
-	defer cursor.Close(context.TODO())
-
-	for cursor.Next(context.TODO()) {
-		var todo Todo
-		cursor.Decode(&todo)
-		todos = append(todos, todo)
-	}
-	if err := cursor.Err(); err != nil {
-		res.WriteHeader(http.StatusInternalServerError)
-		res.Write([]byte(`{ "message": "` + err.Error() + `" }`))
-		return
-	}
-
-	json.NewEncoder(res).Encode(todos)
-}
-
-func GetTodoEndpoint(res http.ResponseWriter, req *http.Request) {
-	res.Header().Set("Content-Type", "application/json")
-	res.WriteHeader(http.StatusOK)
-
-	params := mux.Vars(req)
-
-	id, _ := primitive.ObjectIDFromHex(params["id"])
-
-	collection := client.Database("gotodo").Collection("todos")
-
-	var todo Todo
-	err := collection.FindOne(context.TODO(), Todo{ID: id}).Decode(&todo)
-	if err != nil {
-		res.WriteHeader(http.StatusInternalServerError)
-		res.Write([]byte(`{ "message": "` + err.Error() + `" }`))
-		return
-	}
-
-	json.NewEncoder(res).Encode(todo)
-}
-
-func DeleteTodoEndPoint(res http.ResponseWriter, req *http.Request) {
-	res.Header().Set("Content-Type", "application/json")
-	res.WriteHeader(http.StatusOK)
-
-	params := mux.Vars(req)
-	id, _ := primitive.ObjectIDFromHex(params["id"])
-
-	collection := client.Database("gotodo").Collection("todos")
-
-	var todo Todo
-	err := collection.FindOneAndDelete(context.TODO(), Todo{ID: id}).Decode(&todo)
-	if err != nil {
-		res.WriteHeader(http.StatusInternalServerError)
-		res.Write([]byte(`{ "message": "` + err.Error() + `" }`))
-		return
-	}
-
-	json.NewEncoder(res).Encode(todo)
-}
-
-func UpdateTodoEndPoint(res http.ResponseWriter, req *http.Request) {
-	res.Header().Set("Content-Type", "application/json")
-	res.WriteHeader(http.StatusOK)
-
-	params := mux.Vars(req)
-	id, _ := primitive.ObjectIDFromHex(params["id"])
-
-	collection := client.Database("gotodo").Collection("todos")
-
-	var todo Todo
-	json.NewDecoder(req.Body).Decode(&todo)
-
-	result, err := collection.UpdateOne(context.TODO(), Todo{ID: id}, bson.M{"$set": todo})
-	if err != nil {
-		res.WriteHeader(http.StatusInternalServerError)
-		res.Write([]byte(`{ "message": "` + err.Error() + `" }`))
-		return
-	}
-
-	json.NewEncoder(res).Encode(result)
-}
-
-func TimeSpentEndPoint(res http.ResponseWriter, req *http.Request) {
-	res.Header().Set("Content-Type", "application/json")
-	res.WriteHeader(http.StatusOK)
-
-	params := mux.Vars(req)
-	id, _ := primitive.ObjectIDFromHex(params["id"])
-
-	collection := client.Database("gotodo").Collection("todos")
-
-	var todo Todo
-	err := collection.FindOne(context.TODO(), Todo{ID: id}).Decode(&todo)
-
-	var updatedTodo Todo
-	json.NewDecoder(req.Body).Decode(&updatedTodo)
-
-	todo.TimeSpent = append(todo.TimeSpent, updatedTodo.TimeSpent[0])
-	todo.TotalTimeSpent += updatedTodo.TimeSpent[0].Duration
-
-	result, err := collection.UpdateOne(context.TODO(), Todo{ID: id}, bson.M{"$set": todo})
-	if err != nil {
-		res.WriteHeader(http.StatusInternalServerError)
-		res.Write([]byte(`{ "message": "` + err.Error() + `" }`))
-		return
-	}
-
-	json.NewEncoder(res).Encode(result)
-}
+var Client *mongo.Client
 
 func main() {
 	fmt.Println("Starting...")
@@ -178,23 +23,25 @@ func main() {
 	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
 
 	// Connect to MongoDB
-	client, _ = mongo.Connect(context.TODO(), clientOptions)
+	Client, _ = mongo.Connect(context.TODO(), clientOptions)
 
 	// Check the connection
-	err := client.Ping(context.TODO(), nil)
+	err := Client.Ping(context.TODO(), nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	fmt.Println("Connected to MongoDB!")
 
+	routes.Client = Client
+
 	router := mux.NewRouter()
-	router.HandleFunc("/todo", CreateTodoEndPoint).Methods("POST")
-	router.HandleFunc("/todo", GetAllTodosEndPoint).Methods("GET")
-	router.HandleFunc("/todo/{id}", GetTodoEndpoint).Methods("GET")
-	router.HandleFunc("/todo/{id}", DeleteTodoEndPoint).Methods("DELETE")
-	router.HandleFunc("/todo/{id}", UpdateTodoEndPoint).Methods("PUT")
-	router.HandleFunc("/todo/{id}/timespent", TimeSpentEndPoint).Methods("PUT")
-	log.Fatal(http.ListenAndServe(":3000", router))
+	router.HandleFunc("/todo", routes.CreateTodoEndPoint).Methods("POST")
+	router.HandleFunc("/todo", routes.GetAllTodosEndPoint).Methods("GET")
+	router.HandleFunc("/todo/{id}", routes.GetTodoEndpoint).Methods("GET")
+	router.HandleFunc("/todo/{id}", routes.DeleteTodoEndPoint).Methods("DELETE")
+	router.HandleFunc("/todo/{id}", routes.UpdateTodoEndPoint).Methods("PUT")
+	router.HandleFunc("/todo/{id}/timespent", routes.TimeSpentEndPoint).Methods("PUT")
+	log.Fatal(http.ListenAndServe(":3000", handlers.LoggingHandler(os.Stdout, router)))
 
 }
