@@ -6,12 +6,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type Timespent struct {
-	Duration int64     `json:"timespent,omitempty" bson:"timespent,omitempty"`
-	Date     time.Time `json:"timecreated,omitempty" bson:"timecreated,omitempty"`
-	Desc     string    `json:"desc,omitempty" bson:"desc,omitempty"`
-}
-
 type Todo struct {
 	ID             primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
 	Title          string             `json:"title,omitempty" bson:"title,omitempty"`
