@@ -152,7 +152,7 @@ func TimeSpentEndPoint(res http.ResponseWriter, req *http.Request) {
 	json.NewEncoder(res).Encode(result)
 }
 
-func GetTokenHandler(res http.ResponseWriter, req *http.Request) {
-	token := jwt.New(jwt.SigningMethodHS256)
+// func GetTokenHandler(res http.ResponseWriter, req *http.Request) {
+// 	token := jwt.New(jwt.SigningMethodHS256)
 
-}
+// }
