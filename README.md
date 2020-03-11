@@ -1,2 +1,7 @@
 # mongo_todo
-My database API for the go_todo app
+## Tech
+* Go
+* MongoDB
+
+## Description
+A backend API server to perform CRUD operations on a mongo database that holds 'todos'.
