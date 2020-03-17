@@ -14,6 +14,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+// Client for mongoDB connection
 var Client *mongo.Client
 
 func main() {
