@@ -1,3 +1,3 @@
 package config
 
-var MySigningKey = []byte("fuckoff")
+var MySigningKey = []byte("supersecretpassword")

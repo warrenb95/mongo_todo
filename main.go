@@ -31,7 +31,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Println("Connected to MongoDB!")
+	fmt.Println("Connected to MongoDB at localhost:27017")
 
 	routes.Client = Client
 
