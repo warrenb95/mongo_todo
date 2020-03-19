@@ -21,18 +21,18 @@ func main() {
 	fmt.Println("Starting...")
 
 	// Set client options
-	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
+	clientOptions := options.Client().ApplyURI("mongodb://mongodb:27017")
 
 	// Connect to MongoDB
 	Client, _ = mongo.Connect(context.TODO(), clientOptions)
 
 	// Check the connection
-	err := Client.Ping(context.TODO(), nil)
-	if err != nil {
-		log.Fatal(err)
-	}
+	// err := Client.Ping(context.TODO(), nil)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 
-	fmt.Println("Connected to MongoDB at localhost:27017")
+	fmt.Println("Connected to MongoDB at mongodb:27017")
 
 	routes.Client = Client
 

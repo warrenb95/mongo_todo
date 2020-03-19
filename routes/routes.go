@@ -3,6 +3,7 @@ package routes
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -135,9 +136,15 @@ func TimeSpentEndPoint(res http.ResponseWriter, req *http.Request) {
 
 	var todo models.Todo
 	err := collection.FindOne(context.TODO(), models.Todo{ID: id}).Decode(&todo)
+	if err != nil {
+		fmt.Println("Cannot find todo")
+		return
+	}
 
 	var updatedTodo models.Todo
 	json.NewDecoder(req.Body).Decode(&updatedTodo)
+
+	fmt.Println("updatedTodo")
 
 	todo.TimeSpent = append(todo.TimeSpent, updatedTodo.TimeSpent[0])
 	todo.TotalTimeSpent += updatedTodo.TimeSpent[0].Duration
