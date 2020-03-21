@@ -147,7 +147,7 @@ func TimeSpentEndPoint(res http.ResponseWriter, req *http.Request) {
 	fmt.Println("updatedTodo")
 
 	todo.TimeSpent = append(todo.TimeSpent, updatedTodo.TimeSpent[0])
-	todo.TotalTimeSpent += updatedTodo.TimeSpent[0].Duration
+	todo.TotalTimeSpent = todo.TotalTimeSpent + updatedTodo.TimeSpent[0].Duration
 
 	result, err := collection.UpdateOne(context.TODO(), models.Todo{ID: id}, bson.M{"$set": todo})
 	if err != nil {
